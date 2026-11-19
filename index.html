@@ -679,9 +679,23 @@ function iconBlock(it){
    <label>Emoji (opcional)</label><input id="f_emoji" maxlength="4" value="${esc(it.emoji)}" oninput="refreshPrev()">
    <input type="file" id="f_file" accept="image/*" hidden onchange="gotIcon(this)">`;
 }
+let prevT=null;
 function refreshPrev(){
   const g=id=>document.getElementById(id);
-  g("ipv").innerHTML=ico({nome:g("f_nome")?.value||"",link:g("f_link")?.value||"",icone:tmpIcone,emoji:(g("f_emoji")?.value||"").trim()});
+  const box=g("ipv");if(!box)return;
+  const it={nome:g("f_nome")?.value||"",link:g("f_link")?.value||"",icone:tmpIcone,emoji:(g("f_emoji")?.value||"").trim()};
+  const key=JSON.stringify([it.icone,it.emoji,it.emoji||it.icone?"":logoUrls(it)]);
+  const tem=box.firstElementChild;
+  if(tem&&box.dataset.k===key){
+    // mesma imagem: só atualiza a letra, sem recarregar a logo (evita piscar)
+    const L=it.emoji||((it.nome||"?").trim()[0]||"?").toUpperCase();
+    if(tem.firstChild&&tem.firstChild.nodeType===3)tem.firstChild.nodeValue=L;
+    return;
+  }
+  clearTimeout(prevT);
+  const troca=()=>{box.innerHTML=ico(it);box.dataset.k=key};
+  // ao digitar o nome sem link, espera parar de digitar antes de buscar outra logo
+  if(box.dataset.k&&!it.icone&&!it.emoji)prevT=setTimeout(troca,500);else troca();
 }
 function gotIcon(inp){
   const f=inp.files&&inp.files[0];if(!f)return;
