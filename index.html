@@ -110,7 +110,7 @@ const days=d=>Math.round((d-today())/864e5);
 const addM=(d,n)=>{const r=new Date(d.getFullYear(),d.getMonth()+n,1);const last=new Date(r.getFullYear(),r.getMonth()+1,0).getDate();r.setDate(Math.min(d.getDate(),last));return r};
 
 let S={subs:[],cursos:[],desejos:[],tema:"auto"},tab="res",filt={q:"",cat:"",st:""};
-let dbDoc=null,saveT=null,tmpIcone="";
+let dbDoc=null,saveT=null,tmpIcone="",tmpSem=false;
 let selMode=false,sel=new Set(),vis=[],snackT=null,lpT=null,lpFired=false,lpUp=0,lpX=0,lpY=0,impRows=null,impBusy=false,impErr="",impK="sub",impDup=null;
 const base=o=>Object.assign({subs:[],cursos:[],desejos:[],tema:"auto"},o||{});
 
@@ -144,7 +144,7 @@ function ico(it){
   const L=((it.nome||"?").trim()[0]||"?").toUpperCase();
   let img="";
   if(it.icone)img=`<img src="${it.icone}" alt="">`;
-  else if(!it.emoji){
+  else if(!it.emoji&&!it.semLogo){
     const u=logoUrls(it);
     if(u.length)img=`<img src="${u[0]}" alt="" data-u="${esc(JSON.stringify(u))}" data-i="0" onerror="logoNext(this)" onload="logoOk(this)">`;
   }
@@ -683,19 +683,19 @@ window.__voltar=()=>{
 
 /* ---------- formulários ---------- */
 function iconBlock(it){
-  tmpIcone=it.icone||"";
+  tmpIcone=it.icone||"";tmpSem=!!it.semLogo;
   return `<div class="icoRow" style="margin-top:9px;flex-wrap:wrap"><div id="ipv"></div>
-   <div class="acts" style="margin:0"><button type="button" class="btn" onclick="document.getElementById('f_file').click()">📁 Imagem</button><button type="button" class="btn" onclick="tmpIcone='';refreshPrev()">Remover</button></div>
+   <div class="acts" style="margin:0"><button type="button" class="btn" onclick="document.getElementById('f_file').click()">📁 Imagem</button><button type="button" class="btn" id="f_rem" onclick="remLogo()">${tmpSem?"Restaurar logo":"Remover logo"}</button></div>
    <span class="sub" style="flex:1;min-width:110px">A logo vem do link ou do nome.</span></div>
    <input id="f_emoji" type="hidden" value="${esc(it.emoji)}">
    <input type="file" id="f_file" accept="image/*" hidden onchange="gotIcon(this)">`;
 }
 let prevT=null;
-function refreshPrev(){
+function refreshPrev(now){
   const g=id=>document.getElementById(id);
   const box=g("ipv");if(!box)return;
-  const it={nome:g("f_nome")?.value||"",link:g("f_link")?.value||"",icone:tmpIcone,emoji:(g("f_emoji")?.value||"").trim()};
-  const key=JSON.stringify([it.icone,it.emoji,it.emoji||it.icone?"":logoUrls(it)]);
+  const it={nome:g("f_nome")?.value||"",link:g("f_link")?.value||"",icone:tmpIcone,semLogo:tmpSem,emoji:(g("f_emoji")?.value||"").trim()};
+  const key=JSON.stringify([it.icone,it.semLogo,it.emoji,it.emoji||it.icone||it.semLogo?"":logoUrls(it)]);
   const tem=box.firstElementChild;
   if(tem&&box.dataset.k===key){
     // mesma imagem: só atualiza a letra, sem recarregar a logo (evita piscar)
@@ -706,7 +706,7 @@ function refreshPrev(){
   clearTimeout(prevT);
   const troca=()=>{box.innerHTML=ico(it);box.dataset.k=key};
   // ao digitar o nome sem link, espera parar de digitar antes de buscar outra logo
-  if(box.dataset.k&&!it.icone&&!it.emoji)prevT=setTimeout(troca,500);else troca();
+  if(!now&&box.dataset.k&&!it.icone&&!it.emoji)prevT=setTimeout(troca,500);else troca();
 }
 function gotIcon(inp){
   const f=inp.files&&inp.files[0];if(!f)return;
@@ -715,10 +715,12 @@ function gotIcon(inp){
     const s=128,c=document.createElement("canvas");c.width=c.height=s;
     const k=Math.min(s/im.width,s/im.height),w=im.width*k,h=im.height*k;
     c.getContext("2d").drawImage(im,(s-w)/2,(s-h)/2,w,h);
-    tmpIcone=c.toDataURL("image/png");refreshPrev()};im.src=r.result};
+    tmpIcone=c.toDataURL("image/png");tmpSem=false;updRem();refreshPrev(true)};im.src=r.result};
   r.readAsDataURL(f);
 }
-function common(){return {icone:tmpIcone,emoji:f_emoji.value.trim(),link:f_link.value.trim()}}
+function updRem(){const b=document.getElementById("f_rem");if(b)b.textContent=tmpSem?"Restaurar logo":"Remover logo"}
+function remLogo(){if(tmpSem){tmpSem=false}else{tmpSem=true;tmpIcone=""}updRem();refreshPrev(true)}
+function common(){return {icone:tmpIcone,semLogo:tmpSem,emoji:f_emoji.value.trim(),link:f_link.value.trim()}}
 function finish(k,o,fromId){
   if(fromId)S.desejos=S.desejos.filter(x=>x.id!==fromId);
   const arr=S[KEY[k]],i=arr.findIndex(x=>x.id===o.id);i>=0?arr[i]=o:arr.push(o);
