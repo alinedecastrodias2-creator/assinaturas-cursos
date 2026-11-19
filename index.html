@@ -97,6 +97,8 @@ const CATS0=["Streaming","Estudos","Música","Software","Saúde","Compras","Jogo
 function cats(){const o=(Array.isArray(S.cats)?S.cats:CATS0).slice();S.subs.forEach(s=>{if(s.categoria&&o.indexOf(s.categoria)<0)o.push(s.categoria)});return o}
 function setCats(l){S.cats=l;S.catsU=Date.now();save()}
 const CICLOS={mensal:1,trimestral:3,semestral:6,anual:12};
+const PU="pagamento único";
+const cobOpts=sel=>[PU].concat(Object.keys(CICLOS)).map(c=>`<option ${sel===c?"selected":""}>${c}</option>`).join("");
 const KEY={sub:"subs",cur:"cursos",des:"desejos"};
 const MARCAS={netflix:"netflix.com",spotify:"spotify.com",youtube:"youtube.com",prime:"primevideo.com",amazon:"amazon.com.br",disney:"disneyplus.com",hbo:"max.com",max:"max.com",globoplay:"globoplay.globo.com",canva:"canva.com",chatgpt:"openai.com",openai:"openai.com",claude:"claude.ai",gemini:"gemini.google.com",notion:"notion.so",google:"google.com",icloud:"icloud.com",apple:"apple.com",duolingo:"duolingo.com",udemy:"udemy.com",hotmart:"hotmart.com",coursera:"coursera.org",alura:"alura.com.br",microsoft:"microsoft.com",office:"microsoft.com",adobe:"adobe.com",dropbox:"dropbox.com",deezer:"deezer.com",github:"github.com",linkedin:"linkedin.com",kiwify:"kiwify.com.br",eduzz:"eduzz.com",sanar:"sanarflix.com.br",sanarflix:"sanarflix.com.br",medcel:"medcel.com.br",medway:"medway.com.br",medgrupo:"medgrupo.com.br",amboss:"amboss.com",uptodate:"uptodate.com",anki:"ankiweb.net",ankihub:"ankihub.net",paramount:"paramountplus.com",crunchyroll:"crunchyroll.com",tidal:"tidal.com",picsart:"picsart.com",capcut:"capcut.com",grammarly:"grammarly.com",skillshare:"skillshare.com",masterclass:"masterclass.com",domestika:"domestika.org",instagram:"instagram.com",meta:"meta.com",truecaller:"truecaller.com",evernote:"evernote.com",life360:"life360.com",whatsapp:"whatsapp.com",tiktok:"tiktok.com",twitch:"twitch.tv",discord:"discord.com",zoom:"zoom.us",slack:"slack.com"};
 const brl=v=>(Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -281,7 +283,7 @@ function vCur(){
     return `<div class="card${sel.has(c.id)?" picked":""}" data-id="${c.id}">${chk(c.id)}<div class="row"><div class="lft">${ico(c)}<div><div class="name">${esc(c.nome)}</div><div class="sub">${esc(c.plataforma||"—")}${c.acesso?" · acesso até "+fmt(parse(c.acesso)):" · sem prazo de acesso"}</div>
     ${c.compra?`<div class="sub">🛒 Comprado em ${fmt(parse(c.compra))}</div>`:""}
     <span class="chip ${c.status==="concluido"?"ok":""}">${lab[c.status]}</span>${n!==null&&c.status!=="concluido"&&n<=30?`<span class="chip ${n<0?"bad":"warn"}">${n<0?"expirado":n+" dias de acesso"}</span>`:""}</div></div>
-    <div class="price">${c.valor?brl(c.valor):"grátis"}</div></div>
+    <div style="text-align:right"><div class="price">${c.valor?brl(c.valor):"grátis"}</div>${c.valor?`<div class="sub">${esc(c.ciclo||PU)}</div>`:""}</div></div>
     <div class="bar"><i style="width:${c.progresso||0}%"></i></div><div class="sub">${c.progresso||0}% concluído</div>
     ${c.nota?`<div class="sub">${esc(c.nota)}</div>`:""}
     <div class="acts"><button class="btn" onclick="prog('${c.id}',-10)">−10%</button><button class="btn p" onclick="prog('${c.id}',10)">+10%</button>
@@ -295,7 +297,7 @@ function vDes(){
   if(!l.length)return h+`<div class="empty">Sua lista de desejos está vazia.<br>Guarde aqui os cursos e assinaturas que quer comprar.</div>`;
   const pc={alta:"bad",media:"warn",baixa:""};
   return h+l.map(d=>`<div class="card${sel.has(d.id)?" picked":""}" data-id="${d.id}">${chk(d.id)}<div class="row"><div class="lft">${ico(d)}<div><div class="name">${esc(d.nome)}</div>
-    <span class="chip">${d.tipo==="curso"?"🎓 curso":"🔁 assinatura ("+esc(d.ciclo||"mensal")+")"}</span><span class="chip ${pc[d.prioridade]}">prioridade ${esc(d.prioridade)}</span></div></div>
+    <span class="chip">${d.tipo==="curso"?"🎓 curso":"🔁 assinatura"} (${esc(d.ciclo||(d.tipo==="curso"?PU:"mensal"))})</span><span class="chip ${pc[d.prioridade]}">prioridade ${esc(d.prioridade)}</span></div></div>
     <div class="price">${d.valor?brl(d.valor):"—"}</div></div>
     ${d.nota?`<div class="sub">${esc(d.nota)}</div>`:""}
     <div class="acts"><button class="btn p" onclick="buy('${d.id}')">✓ Comprei</button>${linkBtn(d.link)}
@@ -623,8 +625,8 @@ function impConfirmar(){
 function buy(id){
   const d=S.desejos.find(x=>x.id===id);
   const c={nome:d.nome,valor:d.valor,link:d.link,nota:d.nota,icone:d.icone,emoji:d.emoji};
-  if(d.tipo==="curso")edit("cur",null,Object.assign(c,{compra:iso(today())}),id);
-  else edit("sub",null,Object.assign(c,{ciclo:d.ciclo||"mensal"}),id);
+  if(d.tipo==="curso")edit("cur",null,Object.assign(c,{compra:iso(today()),ciclo:d.ciclo||PU}),id);
+  else edit("sub",null,Object.assign(c,{ciclo:CICLOS[d.ciclo]?d.ciclo:"mensal"}),id);
 }
 let catEd=null;
 function catRow(c,i,n){
@@ -747,7 +749,7 @@ function edit(k,id,pre,fromId){
       if(!f_cat.value){faltou(f_cat,"Escolha a categoria.");return}
       finish("sub",Object.assign({id:s.id||uid(),nome,valor:parseFloat(f_valor.value)||0,ciclo:f_ciclo.value,proxima:f_prox.value,categoria:f_cat.value,status:f_st.value,nota:f_nota.value.trim()},common()),fromId)};
   }else if(k==="cur"){
-    const c=find||Object.assign({nome:"",plataforma:"",valor:"",progresso:0,status:"naoiniciado",acesso:"",compra:"",link:"",nota:"",icone:"",emoji:""},pre);
+    const c=find||Object.assign({nome:"",plataforma:"",valor:"",ciclo:PU,progresso:0,status:"naoiniciado",acesso:"",compra:"",link:"",nota:"",icone:"",emoji:""},pre);
     openModal(`<h2>${id?"Editar":"Novo"} curso</h2>
     <label>Nome do curso *</label><input id="f_nome" value="${esc(c.nome)}" oninput="refreshPrev()">
     <label>Link do curso/plataforma (puxa a logo)</label><input id="f_link" value="${esc(c.link)}" placeholder="https://…" oninput="refreshPrev()">
@@ -757,13 +759,14 @@ function edit(k,id,pre,fromId){
     <div class="two"><div><label>Progresso (%)</label><input id="f_pg" type="number" min="0" max="100" value="${c.progresso||0}"></div>
     <div><label>Acesso até (opcional)</label><input id="f_ac" type="date" value="${esc(c.acesso)}"></div></div>
     <div class="two"><div><label>Data da compra (opcional)</label><input id="f_compra" type="date" value="${esc(c.compra)}"></div>
-    <div><label>Observações</label><textarea id="f_nota" rows="1">${esc(c.nota)}</textarea></div></div>${btns}`);
+    <div><label>Cobrança</label><select id="f_ciclo">${cobOpts(c.ciclo||PU)}</select></div></div>
+    <label>Observações</label><textarea id="f_nota" rows="1">${esc(c.nota)}</textarea>${btns}`);
     refreshPrev();if(!id)focusNome();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       const pg=Math.max(0,Math.min(100,parseInt(f_pg.value)||0));
-      finish("cur",Object.assign({id:c.id||uid(),nome,plataforma:f_pl.value.trim(),valor:parseFloat(f_valor.value)||0,progresso:pg,status:pg>=100?"concluido":pg>0?"andamento":"naoiniciado",acesso:f_ac.value,compra:f_compra.value,nota:f_nota.value.trim()},common()),fromId)};
+      finish("cur",Object.assign({id:c.id||uid(),nome,plataforma:f_pl.value.trim(),valor:parseFloat(f_valor.value)||0,progresso:pg,status:pg>=100?"concluido":pg>0?"andamento":"naoiniciado",acesso:f_ac.value,compra:f_compra.value,ciclo:f_ciclo.value,nota:f_nota.value.trim()},common()),fromId)};
   }else{
-    const d=find||{nome:"",tipo:"curso",valor:"",ciclo:"mensal",prioridade:"media",link:"",nota:"",icone:"",emoji:""};
+    const d=find||{nome:"",tipo:"curso",valor:"",ciclo:PU,prioridade:"media",link:"",nota:"",icone:"",emoji:""};
     openModal(`<h2>${id?"Editar":"Novo"} desejo</h2>
     <label>Nome *</label><input id="f_nome" value="${esc(d.nome)}" oninput="refreshPrev()">
     <label>Link (puxa a logo)</label><input id="f_link" value="${esc(d.link)}" placeholder="https://…" oninput="refreshPrev()">
@@ -771,7 +774,7 @@ function edit(k,id,pre,fromId){
     <div class="two"><div><label>Tipo</label><select id="f_tipo"><option value="curso" ${d.tipo==="curso"?"selected":""}>Curso</option><option value="assinatura" ${d.tipo==="assinatura"?"selected":""}>Assinatura</option></select></div>
     <div><label>Prioridade</label><select id="f_pri">${["alta","media","baixa"].map(c=>`<option ${d.prioridade===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
     <div class="two"><div><label>Preço (R$)</label><input id="f_valor" type="number" step="0.01" inputmode="decimal" value="${esc(d.valor)}"></div>
-    <div><label>Cobrança (se assinatura)</label><select id="f_ciclo">${Object.keys(CICLOS).map(c=>`<option ${d.ciclo===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
+    <div><label>Cobrança</label><select id="f_ciclo">${cobOpts(d.ciclo||PU)}</select></div></div>
     <label>Observações</label><textarea id="f_nota" rows="1" placeholder="Por que quero, cupom, promoção…">${esc(d.nota)}</textarea>${btns}`);
     refreshPrev();if(!id)focusNome();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
