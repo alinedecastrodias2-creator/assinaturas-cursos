@@ -661,6 +661,15 @@ function openModal(h){const sh=document.getElementById("sheet");sh.innerHTML=h;d
 function faltou(el,msg){let e=document.getElementById("f_err");if(!e){e=document.createElement("div");e.id="f_err";e.style.cssText="color:#dc2626;font-weight:600;font-size:13px;margin:10px 0 0";const a=document.querySelector("#sheet .acts");a.parentNode.insertBefore(e,a)}e.textContent=msg;if(el.scrollIntoView)el.scrollIntoView({block:"center"});el.focus()}
 function closeModal(){document.getElementById("modal").classList.remove("on")}
 document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+document.getElementById("sheet").addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||e.shiftKey||e.isComposing)return;
+  const t=e.target;if(!t||t.tagName==="TEXTAREA"||t.tagName==="BUTTON")return;
+  if(t.id==="c_new"){e.preventDefault();catAdd();return}
+  if(t.id==="c_ren"){e.preventDefault();catRen(catEd);return}
+  if(t.id==="c_q"){e.preventDefault();return}
+  const ok=document.getElementById("ok");
+  if(ok){e.preventDefault();ok.click()}
+});
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;filt={q:"",cat:"",st:""};selMode=false;sel.clear();render()});
 window.__voltar=()=>{
   if(selMode){exitSel();return true}
@@ -675,8 +684,8 @@ function iconBlock(it){
   return `<label>Ícone / logo</label>
   <div class="icoRow"><div id="ipv"></div><div style="flex:1">
    <div class="acts" style="margin:0"><button type="button" class="btn" onclick="document.getElementById('f_file').click()">📁 Escolher imagem</button><button type="button" class="btn" onclick="tmpIcone='';refreshPrev()">Remover</button></div>
-   <div class="sub">A logo aparece sozinha pelo link ou pelo nome (com internet). Se não achar, escolha uma imagem ou use um emoji.</div></div></div>
-   <label>Emoji (opcional)</label><input id="f_emoji" maxlength="4" value="${esc(it.emoji)}" oninput="refreshPrev()">
+   <div class="sub">A logo aparece sozinha pelo link ou pelo nome (com internet). Se não achar, escolha uma imagem.</div></div></div>
+   <input id="f_emoji" type="hidden" value="${esc(it.emoji)}">
    <input type="file" id="f_file" accept="image/*" hidden onchange="gotIcon(this)">`;
 }
 let prevT=null;
