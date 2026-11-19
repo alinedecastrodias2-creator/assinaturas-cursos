@@ -47,9 +47,12 @@ select,input,textarea{font:inherit;color:var(--ink);background:var(--bg);border:
 .tools select,.tools input{width:auto;flex:1;min-width:120px}
 .modal{position:fixed;inset:0;background:rgba(8,12,25,.55);display:none;align-items:flex-end;justify-content:center;z-index:10}
 .modal.on{display:flex}
-.sheet{background:var(--card);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:96vh;max-height:96dvh;overflow:auto;border-radius:20px 20px 0 0;padding:14px 16px}
 @media(min-width:600px){.modal{align-items:center}.sheet{border-radius:20px}}
-.sheet h2{margin:0 0 12px;font-size:18px}
+.sheet h2{margin:0 0 6px;font-size:18px}
+.sheet label{margin:7px 0 3px}
+.sheet input,.sheet select,.sheet textarea{padding:7px 10px}
+.sheet textarea{resize:none}
 label{display:block;font-size:12px;color:var(--mut);margin:10px 0 4px;font-weight:600}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .icoRow{display:flex;gap:12px;align-items:center}
@@ -681,10 +684,9 @@ window.__voltar=()=>{
 /* ---------- formulários ---------- */
 function iconBlock(it){
   tmpIcone=it.icone||"";
-  return `<label>Ícone / logo</label>
-  <div class="icoRow"><div id="ipv"></div><div style="flex:1">
-   <div class="acts" style="margin:0"><button type="button" class="btn" onclick="document.getElementById('f_file').click()">📁 Escolher imagem</button><button type="button" class="btn" onclick="tmpIcone='';refreshPrev()">Remover</button></div>
-   <div class="sub">A logo aparece sozinha pelo link ou pelo nome (com internet). Se não achar, escolha uma imagem.</div></div></div>
+  return `<div class="icoRow" style="margin-top:9px;flex-wrap:wrap"><div id="ipv"></div>
+   <div class="acts" style="margin:0"><button type="button" class="btn" onclick="document.getElementById('f_file').click()">📁 Imagem</button><button type="button" class="btn" onclick="tmpIcone='';refreshPrev()">Remover</button></div>
+   <span class="sub" style="flex:1;min-width:110px">A logo vem do link ou do nome.</span></div>
    <input id="f_emoji" type="hidden" value="${esc(it.emoji)}">
    <input type="file" id="f_file" accept="image/*" hidden onchange="gotIcon(this)">`;
 }
@@ -724,7 +726,7 @@ function finish(k,o,fromId){
 }
 function edit(k,id,pre,fromId){
   const find=S[KEY[k]].find(x=>x.id===id);
-  const btns=`<div class="acts"><button class="btn p" id="ok">Salvar</button><button class="btn" onclick="closeModal()">Cancelar</button></div>`;
+  const btns=`<div class="acts" style="margin-top:12px"><button class="btn p" id="ok">Salvar</button><button class="btn" onclick="closeModal()">Cancelar</button></div>`;
   if(k==="sub"){
     const s=find||Object.assign({nome:"",valor:"",ciclo:"mensal",proxima:"",categoria:"",status:"ativa",nota:"",link:"",icone:"",emoji:""},pre);
     openModal(`<h2>${id?"Editar":"Nova"} assinatura</h2>
@@ -735,8 +737,8 @@ function edit(k,id,pre,fromId){
     <div><label>Cobrança</label><select id="f_ciclo">${Object.keys(CICLOS).map(c=>`<option ${s.ciclo===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
     <div class="two"><div><label>Próxima cobrança (opcional)</label><input id="f_prox" type="date" value="${esc(s.proxima)}"></div>
     <div><label>Categoria *</label><select id="f_cat" onchange="const e=document.getElementById('f_err');if(e)e.textContent=''"><option value="" ${s.categoria?"":"selected"}>Escolha a categoria…</option>${cats().map(c=>`<option ${s.categoria===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
-    <label>Status</label><select id="f_st">${["ativa","pausada","cancelada"].map(c=>`<option ${s.status===c?"selected":""}>${c}</option>`).join("")}</select>
-    <label>Observações</label><textarea id="f_nota" rows="2" placeholder="Cartão usado, e-mail da conta…">${esc(s.nota)}</textarea>${btns}`);
+    <div class="two"><div><label>Status</label><select id="f_st">${["ativa","pausada","cancelada"].map(c=>`<option ${s.status===c?"selected":""}>${c}</option>`).join("")}</select></div>
+    <div><label>Observações</label><textarea id="f_nota" rows="1" placeholder="Cartão, e-mail da conta…">${esc(s.nota)}</textarea></div></div>${btns}`);
     refreshPrev();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       if(!f_cat.value){faltou(f_cat,"Escolha a categoria.");return}
@@ -751,8 +753,8 @@ function edit(k,id,pre,fromId){
     <div><label>Valor pago (R$)</label><input id="f_valor" type="number" step="0.01" inputmode="decimal" value="${esc(c.valor)}"></div></div>
     <div class="two"><div><label>Progresso (%)</label><input id="f_pg" type="number" min="0" max="100" value="${c.progresso||0}"></div>
     <div><label>Acesso até (opcional)</label><input id="f_ac" type="date" value="${esc(c.acesso)}"></div></div>
-    <label>Data da compra (opcional)</label><input id="f_compra" type="date" value="${esc(c.compra)}">
-    <label>Observações</label><textarea id="f_nota" rows="2">${esc(c.nota)}</textarea>${btns}`);
+    <div class="two"><div><label>Data da compra (opcional)</label><input id="f_compra" type="date" value="${esc(c.compra)}"></div>
+    <div><label>Observações</label><textarea id="f_nota" rows="1">${esc(c.nota)}</textarea></div></div>${btns}`);
     refreshPrev();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       const pg=Math.max(0,Math.min(100,parseInt(f_pg.value)||0));
@@ -767,7 +769,7 @@ function edit(k,id,pre,fromId){
     <div><label>Prioridade</label><select id="f_pri">${["alta","media","baixa"].map(c=>`<option ${d.prioridade===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
     <div class="two"><div><label>Preço (R$)</label><input id="f_valor" type="number" step="0.01" inputmode="decimal" value="${esc(d.valor)}"></div>
     <div><label>Cobrança (se assinatura)</label><select id="f_ciclo">${Object.keys(CICLOS).map(c=>`<option ${d.ciclo===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
-    <label>Observações</label><textarea id="f_nota" rows="2" placeholder="Por que quero, cupom, quando está em promoção…">${esc(d.nota)}</textarea>${btns}`);
+    <label>Observações</label><textarea id="f_nota" rows="1" placeholder="Por que quero, cupom, promoção…">${esc(d.nota)}</textarea>${btns}`);
     refreshPrev();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       finish("des",Object.assign({id:d.id||uid(),nome,tipo:f_tipo.value,prioridade:f_pri.value,valor:parseFloat(f_valor.value)||0,ciclo:f_ciclo.value,nota:f_nota.value.trim()},common()),null)};
