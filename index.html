@@ -718,6 +718,7 @@ function gotIcon(inp){
     tmpIcone=c.toDataURL("image/png");tmpSem=false;updRem();refreshPrev(true)};im.src=r.result};
   r.readAsDataURL(f);
 }
+function focusNome(){const f=()=>{const e=document.getElementById("f_nome");if(e&&document.getElementById("modal").classList.contains("on")){try{e.focus({preventScroll:true})}catch(_){e.focus()}}};f();setTimeout(f,150)}
 function updRem(){const b=document.getElementById("f_rem");if(b)b.textContent=tmpSem?"Restaurar logo":"Remover logo"}
 function remLogo(){if(tmpSem){tmpSem=false}else{tmpSem=true;tmpIcone=""}updRem();refreshPrev(true)}
 function common(){return {icone:tmpIcone,semLogo:tmpSem,emoji:f_emoji.value.trim(),link:f_link.value.trim()}}
@@ -741,7 +742,7 @@ function edit(k,id,pre,fromId){
     <div><label>Categoria *</label><select id="f_cat" onchange="const e=document.getElementById('f_err');if(e)e.textContent=''"><option value="" ${s.categoria?"":"selected"}>Escolha a categoria…</option>${cats().map(c=>`<option ${s.categoria===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
     <div class="two"><div><label>Status</label><select id="f_st">${["ativa","pausada","cancelada"].map(c=>`<option ${s.status===c?"selected":""}>${c}</option>`).join("")}</select></div>
     <div><label>Observações</label><textarea id="f_nota" rows="1" placeholder="Cartão, e-mail da conta…">${esc(s.nota)}</textarea></div></div>${btns}`);
-    refreshPrev();
+    refreshPrev();if(!id)focusNome();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       if(!f_cat.value){faltou(f_cat,"Escolha a categoria.");return}
       finish("sub",Object.assign({id:s.id||uid(),nome,valor:parseFloat(f_valor.value)||0,ciclo:f_ciclo.value,proxima:f_prox.value,categoria:f_cat.value,status:f_st.value,nota:f_nota.value.trim()},common()),fromId)};
@@ -757,7 +758,7 @@ function edit(k,id,pre,fromId){
     <div><label>Acesso até (opcional)</label><input id="f_ac" type="date" value="${esc(c.acesso)}"></div></div>
     <div class="two"><div><label>Data da compra (opcional)</label><input id="f_compra" type="date" value="${esc(c.compra)}"></div>
     <div><label>Observações</label><textarea id="f_nota" rows="1">${esc(c.nota)}</textarea></div></div>${btns}`);
-    refreshPrev();
+    refreshPrev();if(!id)focusNome();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       const pg=Math.max(0,Math.min(100,parseInt(f_pg.value)||0));
       finish("cur",Object.assign({id:c.id||uid(),nome,plataforma:f_pl.value.trim(),valor:parseFloat(f_valor.value)||0,progresso:pg,status:pg>=100?"concluido":pg>0?"andamento":"naoiniciado",acesso:f_ac.value,compra:f_compra.value,nota:f_nota.value.trim()},common()),fromId)};
@@ -772,7 +773,7 @@ function edit(k,id,pre,fromId){
     <div class="two"><div><label>Preço (R$)</label><input id="f_valor" type="number" step="0.01" inputmode="decimal" value="${esc(d.valor)}"></div>
     <div><label>Cobrança (se assinatura)</label><select id="f_ciclo">${Object.keys(CICLOS).map(c=>`<option ${d.ciclo===c?"selected":""}>${c}</option>`).join("")}</select></div></div>
     <label>Observações</label><textarea id="f_nota" rows="1" placeholder="Por que quero, cupom, promoção…">${esc(d.nota)}</textarea>${btns}`);
-    refreshPrev();
+    refreshPrev();if(!id)focusNome();
     ok.onclick=()=>{const nome=f_nome.value.trim();if(!nome){faltou(f_nome,"Preencha o nome.");return}
       finish("des",Object.assign({id:d.id||uid(),nome,tipo:f_tipo.value,prioridade:f_pri.value,valor:parseFloat(f_valor.value)||0,ciclo:f_ciclo.value,nota:f_nota.value.trim()},common()),null)};
   }
